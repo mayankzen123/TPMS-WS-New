@@ -5,7 +5,7 @@ const os = require('os');
 
 // Create Express app for serving the HTML client
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 4000;
 
 // Get server IP address
 function getServerIP() {
