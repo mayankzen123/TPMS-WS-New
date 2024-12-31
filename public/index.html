@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Echo Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .connection-info {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        #messages {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: auto;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+        }
+        .sent {
+            color: blue;
+        }
+        .received {
+            color: green;
+        }
+        input[type="text"] {
+            width: 70%;
+            padding: 5px;
+        }
+        button {
+            padding: 5px 15px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Echo Test</h1>
+    <div class="connection-info">
+        <p>Server: <span id="serverInfo">ws://localhost:3000</span></p>
+        <p>Status: <span id="status">Disconnected</span></p>
+    </div>
+    <div>
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
+    <div id="messages"></div>
+    <div>
+        <input type="text" id="messageInput" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        let ws = null;
+        const statusElement = document.getElementById('status');
+        const serverInfoElement = document.getElementById('serverInfo');
+        const messagesElement = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+
+        // Update server info
+        serverInfoElement.textContent = `ws://${window.location.host}`;
+
+        function connect() {
+            if (ws) {
+                return;
+            }
+
+            // Create WebSocket connection
+            ws = new WebSocket(`ws://${window.location.host}`);
+
+            ws.onopen = () => {
+                statusElement.textContent = 'Connected';
+                statusElement.style.color = 'green';
+            };
+
+            ws.onclose = () => {
+                statusElement.textContent = 'Disconnected';
+                statusElement.style.color = 'red';
+                ws = null;
+            };
+
+            ws.onmessage = (event) => {
+                const message = document.createElement('div');
+                message.className = 'message received';
+                message.textContent = `Received: ${event.data}`;
+                messagesElement.appendChild(message);
+                messagesElement.scrollTop = messagesElement.scrollHeight;
+            };
+        }
+
+        function disconnect() {
+            if (ws) {
+                ws.close();
+            }
+        }
+
+        function sendMessage() {
+            if (!ws) {
+                alert('Please connect first');
+                return;
+            }
+
+            const message = messageInput.value;
+            if (message) {
+                ws.send(message);
+                const messageElement = document.createElement('div');
+                messageElement.className = 'message sent';
+                messageElement.textContent = `Sent: ${message}`;
+                messagesElement.appendChild(messageElement);
+                messagesElement.scrollTop = messagesElement.scrollHeight;
+                messageInput.value = '';
+            }
+        }
+
+        // Allow sending message with Enter key
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
